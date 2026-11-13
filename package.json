@@ -1,0 +1,13 @@
+{
+  "name": "dsh-ai-companion",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Local-first character engine and native DSH Cordis plugin",
+  "main": "src/plugin.js",
+  "exports": {".": "./src/plugin.js", "./engine": "./src/engine.js"},
+  "engines": {"node": ">=22"},
+  "files": ["src", "test", "cordis.patch.yml", "config.example.json", "README.md", "docs"],
+  "dsh": {"bundle": {"patch": "./cordis.patch.yml"}},
+  "scripts": {"start": "node src/cli.js", "test": "node --test test/companion.test.js", "check": "node --check src/engine.js && node --check src/server.js && node --check src/plugin.js"},
+  "license": "MIT"
+}

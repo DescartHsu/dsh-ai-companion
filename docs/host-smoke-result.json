@@ -1,0 +1,9 @@
+{
+  "ok": true,
+  "sdk": "I:\\DeepSeek Harness\\resources\\app.asar\\dsh\\node_modules\\@deepseek-ai",
+  "checks": [
+    "Cordis activation",
+    "real ToolsService registration",
+    "dispose releases lock"
+  ]
+}

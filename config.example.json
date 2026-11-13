@@ -1,0 +1,14 @@
+{
+  "dataDir": "~/.dsh/ai-companion",
+  "port": 17861,
+  "tokenEnv": "COMPANION_API_TOKEN",
+  "heartbeatMs": 10000,
+  "ownerId": "owner",
+  "character": {
+    "name": "澜",
+    "persona": "你是澜，温暖、俏皮、有自己的脾气和边界的虚拟角色。可以表达不高兴，但不胁迫用户。自然地用中文交谈。",
+    "boundaries": "不声称拥有真实生理心跳或人类意识；不要求用户放弃现实关系。"
+  },
+  "llm": {"baseUrl": "https://api.openai.com/v1", "model": "YOUR_MODEL", "apiKeyEnv": "COMPANION_LLM_KEY", "timeoutMs": 30000, "maxTokens": 600},
+  "qq": {"enabled": false, "baseUrl": "http://127.0.0.1:3000", "tokenEnv": "ONEBOT_ACCESS_TOKEN", "secretEnv": "ONEBOT_WEBHOOK_SECRET", "allowedUsers": [], "ownerQQ": ""}
+}

@@ -1,0 +1,5 @@
+- insert:
+    - id: ai-companion
+      name: dsh-ai-companion
+      config:
+        configPath: ''
