@@ -30,6 +30,47 @@ test('a clean consumer can install the tarball, load the DSH plugin and invoke t
   await npm(consumer, 'install', '--prefer-offline', '--no-audit', '--no-fund', join(temp, packed.filename));
   const help = await npm(consumer, 'exec', '--offline', '--', 'dsh-ai-companion', '--help');
   assert.match(help.stdout, /Usage: dsh-ai-companion/);
+  const firstRun = `
+    import assert from 'node:assert/strict';
+    import { readFile, writeFile } from 'node:fs/promises';
+    import { resolve, join } from 'node:path';
+    import { homedir } from 'node:os';
+    import { apply } from 'dsh-ai-companion';
+    assert.equal(homedir(), resolve('home'));
+    delete process.env.COMPANION_CONFIG;
+    delete process.env.COMPANION_API_TOKEN;
+    delete process.env.COMPANION_LLM_KEY;
+    const dir = join(homedir(), '.dsh', 'ai-companion');
+    const configPath = join(dir, 'config.json');
+    const tools = new Map();
+    let port;
+    const ctx = {tools: {register(tool) {tools.set(tool.name, tool);}},
+      logger: {info(line) {port = Number(line.split(':').at(-1));}}};
+    let dispose = await apply(ctx, {configPath: ''});
+    let token;
+    try {
+      token = (await readFile(join(dir, 'api.token'), 'utf8')).trim();
+      assert.match(token, /^[a-f0-9]{64}$/);
+      const url = 'http://127.0.0.1:' + port + '/state';
+      assert.equal((await fetch(url)).status, 401);
+      assert.equal((await fetch(url, {headers: {Authorization: 'Bearer ' + token}})).status, 200);
+      assert.ok(JSON.parse(await tools.get('companion_state').execute()).bpm > 0);
+      await assert.rejects(tools.get('companion_chat').execute({text:'hi'}), /COMPANION_LLM_KEY/);
+    } finally { await dispose(); }
+    const config = JSON.parse(await readFile(configPath, 'utf8'));
+    config.port = 0;
+    config.character.name = '保留我的配置';
+    await writeFile(configPath, JSON.stringify(config));
+    dispose = await apply(ctx);
+    try {
+      assert.equal((await readFile(join(dir, 'api.token'), 'utf8')).trim(), token);
+      assert.equal(JSON.parse(await readFile(configPath, 'utf8')).character.name, config.character.name);
+    } finally { await dispose(); }
+  `;
+  const home = join(consumer, 'home');
+  await exec(process.execPath, ['--input-type=module', '--eval', firstRun], {
+    cwd: consumer, env: {...process.env, HOME: home, USERPROFILE: home}, timeout: 15000
+  });
   const check = `
     import assert from 'node:assert/strict';
     import { readFile, writeFile } from 'node:fs/promises';

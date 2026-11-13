@@ -48,21 +48,21 @@ Invoke-RestMethod http://127.0.0.1:17861/chat -Method Post -Headers $headers -Co
 
 ## 安装为 DSH 原生插件
 
-从 npm 安装 0.1.0：
+从 npm 安装，已有 0.1.0 的桌面也可用此命令升级：
 
 ```powershell
-dsh plugin --profile desktop add dsh-ai-companion@0.1.0
+dsh plugin --profile desktop add dsh-ai-companion@0.1.1
 ```
 
 从源码或 GitHub Release 安装时，可使用同版本的压缩包。源码目录中执行下方命令，已有压缩包时直接执行第二行。同一 dataDir 同时只能启动一个实例，切换到桌面前请先停止独立运行实例。完整安装流程仍需在目标 0.2.1 桌面验证。
 
 ```powershell
 npm pack
-dsh plugin --profile desktop add "./dsh-ai-companion-0.1.0.tgz"
+dsh plugin --profile desktop add "./dsh-ai-companion-0.1.1.tgz"
 ```
 
 1. 检查 `%USERPROFILE%\.dsh\profiles\desktop\package.json`，在 `dsh.profile.bundles` 数组添加 `"dsh-ai-companion"`（如已有则不重复）。本机其他原生插件也使用此机制。
-2. 将 `COMPANION_CONFIG` 设为配置文件的绝对路径，并将 `COMPANION_API_TOKEN`、`COMPANION_LLM_KEY` 设置到**启动 DSH 的进程环境**。或者在本包 `cordis.patch.yml` 中把 `configPath` 改成配置文件绝对路径后重新打包；密钥仍使用环境变量。
+2. 首次启用会在 `~/.dsh/ai-companion/` 创建 `config.json` 和随机管理令牌 `api.token`，可直接使用 `companion_state`。如需聊天，在该配置中填写 `llm.baseUrl`、`llm.model`，并为启动 DSH 的进程设置 `COMPANION_LLM_KEY`。如需调用本机管理 API，可在 PowerShell 中运行 `$env:COMPANION_API_TOKEN = (Get-Content -Raw "$HOME/.dsh/ai-companion/api.token").Trim()`。自定义配置仍按 `configPath`、`COMPANION_CONFIG` 的顺序优先使用。
 3. 重新启动 DSH，使新环境和插件生效。插件依赖真实的 `tools` 服务。如果启动失败会明确报错，不伪造工具或悄悄退化。
 4. 在 DSH 中请求：“调用 companion_state 查看澜的状态”，或“调用 companion_chat，把‘你好’交给澜，并展示她的原话”。是否调用仍由宿主模型决定。
 5. 卸载：从 bundles 数组去掉本插件，再运行 `dsh plugin --profile desktop remove dsh-ai-companion` 并重启。数据独立保存，不随包卸载删除。
