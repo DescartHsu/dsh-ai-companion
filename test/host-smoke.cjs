@@ -9,6 +9,7 @@ async function main() {
   if (!root) { console.log('Host smoke skipped: DSH_SDK_ROOT not set'); return; }
   const {Context} = require(path.join(root,'cordis'));
   const {ToolsService} = require(path.join(root,'dsh-tools'));
+  const {Loader} = require(path.join(root,'cordis-plugin-loader'));
   const dir = fs.mkdtempSync(path.join(os.tmpdir(),'companion-host-'));
   const configPath = path.join(dir,'config.json');
   const config = JSON.parse(fs.readFileSync(path.join(__dirname,'../config.example.json')));
@@ -20,7 +21,7 @@ async function main() {
     // Minimal system-prompt dependency; no live desktop or model session.
     ctx.provide('systemPrompt',{tools:()=>()=>{}});
     await ctx.plugin(ToolsService).await();
-    const plugin = require('../src/plugin.js');
+    const plugin = Loader.prototype.unwrapExports(require('../src/plugin.js'));
     const fiber = ctx.plugin(plugin,{configPath});
     await fiber.await();
     assert.equal([...ctx.tools.definitions()].length,2);

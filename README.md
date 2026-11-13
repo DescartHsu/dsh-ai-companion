@@ -48,17 +48,17 @@ Invoke-RestMethod http://127.0.0.1:17861/chat -Method Post -Headers $headers -Co
 
 ## 安装为 DSH 原生插件
 
-从 npm 安装，已有 0.1.0 的桌面也可用此命令升级：
+从 npm 安装或升级：
 
 ```powershell
-dsh plugin --profile desktop add dsh-ai-companion@0.1.1
+dsh plugin --profile desktop add dsh-ai-companion@0.1.2
 ```
 
 从源码或 GitHub Release 安装时，可使用同版本的压缩包。源码目录中执行下方命令，已有压缩包时直接执行第二行。同一 dataDir 同时只能启动一个实例，切换到桌面前请先停止独立运行实例。完整安装流程仍需在目标 0.2.1 桌面验证。
 
 ```powershell
 npm pack
-dsh plugin --profile desktop add "./dsh-ai-companion-0.1.1.tgz"
+dsh plugin --profile desktop add "./dsh-ai-companion-0.1.2.tgz"
 ```
 
 1. 检查 `%USERPROFILE%\.dsh\profiles\desktop\package.json`，在 `dsh.profile.bundles` 数组添加 `"dsh-ai-companion"`（如已有则不重复）。本机其他原生插件也使用此机制。

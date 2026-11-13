@@ -33,4 +33,5 @@ export async function apply(ctx, config = {}) {
   // Cordis 4 collects the function returned by async apply as its disposer.
   return () => runtime.close();
 }
-export default apply;
+// DSH's loader unwraps the default export before Cordis checks dependencies.
+export default Object.assign(apply, {inject});

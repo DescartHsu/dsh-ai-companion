@@ -35,7 +35,7 @@ test('a clean consumer can install the tarball, load the DSH plugin and invoke t
     import { readFile, writeFile } from 'node:fs/promises';
     import { resolve, join } from 'node:path';
     import { homedir } from 'node:os';
-    import { apply } from 'dsh-ai-companion';
+    import plugin from 'dsh-ai-companion';
     assert.equal(homedir(), resolve('home'));
     delete process.env.COMPANION_CONFIG;
     delete process.env.COMPANION_API_TOKEN;
@@ -46,7 +46,8 @@ test('a clean consumer can install the tarball, load the DSH plugin and invoke t
     let port;
     const ctx = {tools: {register(tool) {tools.set(tool.name, tool);}},
       logger: {info(line) {port = Number(line.split(':').at(-1));}}};
-    let dispose = await apply(ctx, {configPath: ''});
+    assert.deepEqual(plugin.inject, ['tools']);
+    let dispose = await plugin(ctx, {configPath: ''});
     let token;
     try {
       token = (await readFile(join(dir, 'api.token'), 'utf8')).trim();
@@ -61,7 +62,7 @@ test('a clean consumer can install the tarball, load the DSH plugin and invoke t
     config.port = 0;
     config.character.name = '保留我的配置';
     await writeFile(configPath, JSON.stringify(config));
-    dispose = await apply(ctx);
+    dispose = await plugin(ctx);
     try {
       assert.equal((await readFile(join(dir, 'api.token'), 'utf8')).trim(), token);
       assert.equal(JSON.parse(await readFile(configPath, 'utf8')).character.name, config.character.name);
