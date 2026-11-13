@@ -27,7 +27,7 @@ test('a clean consumer can install the tarball, load the DSH plugin and invoke t
   const consumer = join(temp, 'consumer');
   await mkdir(consumer);
   await writeFile(join(consumer, 'package.json'), '{"private":true}');
-  await npm(consumer, 'install', '--offline', '--no-audit', '--no-fund', join(temp, packed.filename));
+  await npm(consumer, 'install', '--prefer-offline', '--no-audit', '--no-fund', join(temp, packed.filename));
   const help = await npm(consumer, 'exec', '--offline', '--', 'dsh-ai-companion', '--help');
   assert.match(help.stdout, /Usage: dsh-ai-companion/);
   const check = `

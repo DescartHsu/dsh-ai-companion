@@ -11,14 +11,30 @@
   "bin": {
     "dsh-ai-companion": "./src/cli.js"
   },
-  "engines": {"node": ">=22"},
-  "files": ["src", "cordis.patch.yml", "config.example.json"],
-  "dsh": {"bundle": {"patch": "./cordis.patch.yml"}},
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "src",
+    "cordis.patch.yml",
+    "config.example.json"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "scripts": {
     "start": "node src/cli.js",
-    "test": "node --test test/companion.test.js",
+    "test": "node --test test/companion.test.js test/qq-official.test.js",
     "check": "node --check src/engine.js && node --check src/server.js && node --check src/plugin.js",
     "test:package": "node --test test/package.test.js"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@tencent-connect/qqbot-nodejs": "1.0.5"
+  },
+  "devDependencies": {
+    "ws": "8.23.0"
+  }
 }

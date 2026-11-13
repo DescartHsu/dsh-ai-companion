@@ -8,8 +8,8 @@ async function body(req) {
   return Buffer.concat(chunks);
 }
 function same(a, b) { return typeof a === 'string' && Buffer.byteLength(a) === Buffer.byteLength(b) && timingSafeEqual(Buffer.from(a), Buffer.from(b)); }
-export async function startServer(config, engine) {
-  const qq = config.qq?.enabled ? new OneBot(config.qq, engine) : null;
+export async function startServer(config, engine, official) {
+  const qq = config.qq?.enabled && config.qq.mode !== 'official' ? new OneBot(config.qq, engine) : null;
   let active = 0;
   const server = createServer(async (req, res) => {
     const send = (code, value) => { res.writeHead(code, {'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store'}); res.end(JSON.stringify(value)); };
@@ -26,6 +26,9 @@ export async function startServer(config, engine) {
       }
       if (!same(req.headers.authorization, `Bearer ${config.token}`)) return send(401,{error:'Unauthorized'});
       const id = config.ownerId;
+      if (route === '/qq/status' && req.method === 'GET') {
+        return send(200, official?.status() ?? {mode: qq ? 'onebot' : 'disabled'});
+      }
       if (route === '/state' && req.method === 'GET') return send(200, engine.snapshot());
       if (route === '/memories' && req.method === 'GET') return send(200, await engine.run(() => structuredClone(engine.user(id).memories)));
       if (req.method !== 'POST') return send(404,{error:'Not found'});

@@ -16,14 +16,15 @@
 2. OpenAI 兼容 `/chat/completions`：自定义 URL、模型、环境变量密钥、超时、响应校验、停止时取消请求。
 3. 人格、边界、共享角色状态（心情、精力、信任、模拟 bpm）、定时恢复。状态规则在 `src/engine.js`，是透明启发式，不是情感识别模型。
 4. 每个身份独立保存最近 40 条对话、最多 500 条显式记忆；提示中使用最近 20 条对话和最近 20 条记忆。明确添加/删除记忆，不自动提取长期事实。原子文件替换、单进程数据锁。
-5. OneBot 11 HTTP 私聊适配：HMAC-SHA1 上报验证、QQ 白名单、结构化纯文本、HTTP 发回消息、时间检查、进程内消息去重。
+5. QQ 支持腾讯官方机器人 WebSocket 和已有 OneBot 11 HTTP 服务，两种通道都按白名单处理私聊文字。
 6. 仅监听 127.0.0.1 的带令牌管理 API；预留 Live2D、主动聊天、语音、生图和视频的类型契约。
 
 ## 先独立运行
 
-需要 Node.js >=22，无第三方运行依赖。打开本目录的 PowerShell：
+需要 Node.js >=22。在源码目录的 PowerShell 中安装依赖并准备配置：
 
 ```powershell
+npm ci
 Copy-Item config.example.json config.local.json
 $env:COMPANION_API_TOKEN = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
 $env:COMPANION_LLM_KEY = '你的模型服务密钥'
@@ -62,9 +63,31 @@ dsh plugin --profile desktop add "./dsh-ai-companion-0.1.0.tgz"
 
 默认数据位置 `%USERPROFILE%\.dsh\ai-companion\state.json`。先备份再修改；不要并发手工编辑。异常退出可能留下 `engine.lock`，先确认没有实例使用该目录，再手工删除锁。损坏 JSON 会拒绝启动，不自动覆盖。
 
-## QQ 接入（OneBot 11，不是腾讯官方机器人 SDK）
+## QQ 官方机器人私聊
 
-需要你已有的 OneBot 11 实现提供 HTTP API 和 HTTP 事件上报。V0.1 不负责 QQ 登录，不含协议客户端，不支持 WebSocket、群聊、图片或语音。
+1. 在 QQ 机器人开放平台创建支持私聊的机器人，取得 AppID 和 AppSecret。使用沙箱时，将测试账号加入平台允许的测试范围。
+2. 在 `config.local.json` 将 `qq.enabled` 设为 `true`、`qq.mode` 设为 `"official"`，把 AppID 作为字符串填入 `qq.appId`。在启动 Companion 或 DSH 的环境中设置 `QQBOT_APP_SECRET`。首次绑定可将 `allowedUsers` 留作空数组。
+3. 启动后，在已设置同一管理令牌的 PowerShell 中执行下方命令。`connection` 显示 `connected` 时，用自己的手机 QQ 私聊该机器人，发送输出中的完整 `/pair` 命令。
+
+```powershell
+$headers = @{Authorization="Bearer $env:COMPANION_API_TOKEN"}
+$status = Invoke-RestMethod http://127.0.0.1:17861/qq/status -Headers $headers
+$status.connection
+"/pair $($status.pairingCode)"
+```
+
+4. 再次查询 `/qq/status`，将 `pairedOpenId` 填入 `qq.allowedUsers` 数组。需要与桌面共享主人记忆时，将同一个值填入 `qq.ownerOpenId`。重启 Companion 后，此账号即可与角色对话。每位其他用户可分别配对，使用各自独立的记忆。配对码每次成功使用后都会更新，配对只确认 OpenID，授权由本地白名单控制。
+5. 私聊文字触发模型并通过原消息 ID 回复。SDK 管理令牌刷新、心跳和断线重连；状态可查看 `connecting`、`connected`、`reconnecting` 或错误信息。首次凭据获取失败或网关终止连接时，检查配置和平台权限后重启。官方通道只需出站网络连接。
+
+实现参考了 dsh-im 对腾讯 SDK 的使用方式。[dsh-im 的 QQ 通道](https://github.com/xmanrui/dsh-im/blob/fc2ceab217309f8973afa03c58cdd8ff3e900130/src/channels/qq/qq-runtime.mjs) · [腾讯 SDK](https://github.com/tencent-connect/qqbot-nodejs)
+
+## 已有 OneBot 11 服务
+
+已有配置省略 `qq.mode` 时继续使用 OneBot。新配置可将整个 `qq` 对象替换为以下内容，再填入自己的白名单。
+
+```json
+{"enabled": true, "mode": "onebot", "baseUrl": "http://127.0.0.1:3000", "tokenEnv": "ONEBOT_ACCESS_TOKEN", "secretEnv": "ONEBOT_WEBHOOK_SECRET", "allowedUsers": ["你的QQ号"], "ownerQQ": ""}
+```
 
 1. 配置 `qq.enabled=true`、`baseUrl`（仅允许本机 HTTP(S)）、`allowedUsers`（QQ 号字符串数组）。
 2. 如需 DSH 与自己 QQ 共享记忆，设置 `qq.ownerQQ` 为自己的 QQ 号。其他白名单账号使用独立的 `qq:<QQ号>` 身份。
@@ -81,6 +104,7 @@ dsh plugin --profile desktop add "./dsh-ai-companion-0.1.0.tgz"
 | 方法/路径 | 请求体 / 结果 |
 |---|---|
 | GET /state | 模拟状态 |
+| GET /qq/status | QQ 通道模式，官方模式还返回网关连接状态和本机配对信息 |
 | POST /chat | `{ "text": "你好" }` → `{reply,state}` |
 | GET /memories | 显式记忆列表 |
 | POST /memories | `{ "text": "我喜欢茶" }` → 带 id 的记忆 |
@@ -97,7 +121,7 @@ npm run check
 npm run test:package
 ```
 
-在源码仓库运行以上命令。`test:package` 会创建真实的 npm 压缩包，在临时项目中离线安装，检查命令行入口、插件注册和卸载。GitHub Actions 在 Windows 和 Linux 上使用 Node.js 22、24 执行这些检查。发布前可用 `npm pack --dry-run` 检查文件清单。
+在源码仓库运行以上命令。QQ 官方通道测试使用真实 SDK 与本机模拟网关，覆盖私聊回复、白名单和断线恢复。`test:package` 会创建真实的 npm 压缩包，在临时项目中安装并解析依赖，检查命令行入口、插件注册和卸载。GitHub Actions 在 Windows 和 Linux 上使用 Node.js 22、24 执行这些检查。发布前可用 `npm pack --dry-run` 检查文件清单。
 
 真实宿主隔离测试（本机路径，其他安装自行调整）：
 

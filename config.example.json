@@ -10,5 +10,5 @@
     "boundaries": "不声称拥有真实生理心跳或人类意识；不要求用户放弃现实关系。"
   },
   "llm": {"baseUrl": "https://api.openai.com/v1", "model": "YOUR_MODEL", "apiKeyEnv": "COMPANION_LLM_KEY", "timeoutMs": 30000, "maxTokens": 600},
-  "qq": {"enabled": false, "baseUrl": "http://127.0.0.1:3000", "tokenEnv": "ONEBOT_ACCESS_TOKEN", "secretEnv": "ONEBOT_WEBHOOK_SECRET", "allowedUsers": [], "ownerQQ": ""}
+  "qq": {"enabled": false, "mode": "official", "appId": "", "appSecretEnv": "QQBOT_APP_SECRET", "allowedUsers": [], "ownerOpenId": ""}
 }
