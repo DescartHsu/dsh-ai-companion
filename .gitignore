@@ -3,3 +3,7 @@ config.local.json
 data/
 *.tgz
 *.log
+.env
+.env.*
+!.env.example
+/host-smoke.json

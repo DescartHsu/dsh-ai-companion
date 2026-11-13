@@ -32,6 +32,8 @@ npm test
 npm start -- "$PWD\config.local.json"
 ```
 
+从源码运行时使用 `npm start`。在已安装此 npm 包的项目中，可以运行 `npm exec -- dsh-ai-companion "配置文件的绝对路径"`，或用 `npm exec -- dsh-ai-companion --help` 查看用法。示例配置随包提供，位于 `node_modules/dsh-ai-companion/config.example.json`。
+
 这个 PowerShell 环境只对它启动的进程生效；不要把真实密钥写进项目或提交记录。关闭进程后临时令牌会丢失，需要重新配置客户端。
 
 另开 PowerShell，设置同一 API 令牌：
@@ -92,7 +94,10 @@ dsh plugin --profile desktop add "./dsh-ai-companion-0.1.0.tgz"
 ```powershell
 npm test
 npm run check
+npm run test:package
 ```
+
+在源码仓库运行以上命令。`test:package` 会创建真实的 npm 压缩包，在临时项目中离线安装，检查命令行入口、插件注册和卸载。GitHub Actions 在 Windows 和 Linux 上使用 Node.js 22、24 执行这些检查。发布前可用 `npm pack --dry-run` 检查文件清单。
 
 真实宿主隔离测试（本机路径，其他安装自行调整）：
 
@@ -107,4 +112,4 @@ Remove-Item Env:ELECTRON_RUN_AS_NODE
 
 `src/extensions.d.ts` 只定义扩展契约，不声称这些功能已可用。下一阶段可实现：图谱/语义记忆检索与遗忘策略、主动消息授权和静默时段、Live2D 视图、语音和媒体任务队列。V0.1 没有控制台页面、模型记忆抽取、图谱扩散或媒体生成功能。
 
-接口证据、边界和测试报告见 `docs/verification.md`。
+接口证据、边界和原始 0.1.0 测试报告见源码仓库中的 `docs/verification.md`。

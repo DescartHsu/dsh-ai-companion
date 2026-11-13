@@ -1,6 +1,9 @@
+#!/usr/bin/env node
 import { startRuntime } from './runtime.js';
+const usage = 'Usage: dsh-ai-companion <config.json>\n       dsh-ai-companion (with COMPANION_CONFIG set)';
 const path = process.argv[2] || process.env.COMPANION_CONFIG;
-if (!path) { console.error('Usage: npm start -- /absolute/path/config.local.json'); process.exitCode = 1; }
+if (['-h', '--help'].includes(process.argv[2])) { console.log(usage); }
+else if (!path) { console.error(usage); process.exitCode = 1; }
 else {
   try {
     const runtime = await startRuntime(path);
