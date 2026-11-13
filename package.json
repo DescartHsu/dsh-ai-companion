@@ -3,6 +3,14 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Local-first character engine and native DSH Cordis plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DescartHsu/dsh-ai-companion.git"
+  },
+  "homepage": "https://github.com/DescartHsu/dsh-ai-companion#readme",
+  "bugs": {
+    "url": "https://github.com/DescartHsu/dsh-ai-companion/issues"
+  },
   "main": "./src/plugin.js",
   "exports": {
     ".": "./src/plugin.js",

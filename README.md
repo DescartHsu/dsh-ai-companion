@@ -48,7 +48,13 @@ Invoke-RestMethod http://127.0.0.1:17861/chat -Method Post -Headers $headers -Co
 
 ## 安装为 DSH 原生插件
 
-先完成配置，然后停止独立运行实例，同一 dataDir 不可启动两份。以下是本机 CLI 已核实支持的包安装命令；完整安装流程仍需在目标 0.2.1 桌面验证：
+从 npm 安装 0.1.0：
+
+```powershell
+dsh plugin --profile desktop add dsh-ai-companion@0.1.0
+```
+
+从源码或 GitHub Release 安装时，可使用同版本的压缩包。源码目录中执行下方命令，已有压缩包时直接执行第二行。同一 dataDir 同时只能启动一个实例，切换到桌面前请先停止独立运行实例。完整安装流程仍需在目标 0.2.1 桌面验证。
 
 ```powershell
 npm pack
