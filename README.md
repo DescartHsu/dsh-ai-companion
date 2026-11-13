@@ -18,6 +18,7 @@
 4. 每个身份独立保存最近 40 条对话、最多 500 条显式记忆；提示中使用最近 20 条对话和最近 20 条记忆。明确添加/删除记忆，不自动提取长期事实。原子文件替换、单进程数据锁。
 5. QQ 支持腾讯官方机器人 WebSocket 和已有 OneBot 11 HTTP 服务，两种通道都按白名单处理私聊文字。
 6. 仅监听 127.0.0.1 的带令牌管理 API；预留 Live2D、主动聊天、语音、生图和视频的类型契约。
+7. DSH 设置左侧的「AI 伴侣」页面显示角色心情、精力、信任度和模拟心率，每 5 秒自动刷新，也可点击「刷新」手动读取。
 
 ## 先独立运行
 
@@ -51,20 +52,20 @@ Invoke-RestMethod http://127.0.0.1:17861/chat -Method Post -Headers $headers -Co
 从 npm 安装或升级：
 
 ```powershell
-dsh plugin --profile desktop add dsh-ai-companion@0.1.2
+dsh plugin --profile desktop add dsh-ai-companion@0.1.3
 ```
 
 从源码或 GitHub Release 安装时，可使用同版本的压缩包。源码目录中执行下方命令，已有压缩包时直接执行第二行。同一 dataDir 同时只能启动一个实例，切换到桌面前请先停止独立运行实例。完整安装流程仍需在目标 0.2.1 桌面验证。
 
 ```powershell
 npm pack
-dsh plugin --profile desktop add "./dsh-ai-companion-0.1.2.tgz"
+dsh plugin --profile desktop add "./dsh-ai-companion-0.1.3.tgz"
 ```
 
 1. 检查 `%USERPROFILE%\.dsh\profiles\desktop\package.json`，在 `dsh.profile.bundles` 数组添加 `"dsh-ai-companion"`（如已有则不重复）。本机其他原生插件也使用此机制。
 2. 首次启用会在 `~/.dsh/ai-companion/` 创建 `config.json` 和随机管理令牌 `api.token`，可直接使用 `companion_state`。如需聊天，在该配置中填写 `llm.baseUrl`、`llm.model`，并为启动 DSH 的进程设置 `COMPANION_LLM_KEY`。如需调用本机管理 API，可在 PowerShell 中运行 `$env:COMPANION_API_TOKEN = (Get-Content -Raw "$HOME/.dsh/ai-companion/api.token").Trim()`。自定义配置仍按 `configPath`、`COMPANION_CONFIG` 的顺序优先使用。
 3. 重新启动 DSH，使新环境和插件生效。插件依赖真实的 `tools` 服务。如果启动失败会明确报错，不伪造工具或悄悄退化。
-4. 在 DSH 中请求：“调用 companion_state 查看澜的状态”，或“调用 companion_chat，把‘你好’交给澜，并展示她的原话”。是否调用仍由宿主模型决定。
+4. 打开 DSH 设置，在左侧选择「AI 伴侣」查看状态。也可在聊天中请求：“调用 companion_state 查看澜的状态”，或“调用 companion_chat，把‘你好’交给澜，并展示她的原话”。是否调用仍由宿主模型决定。
 5. 卸载：从 bundles 数组去掉本插件，再运行 `dsh plugin --profile desktop remove dsh-ai-companion` 并重启。数据独立保存，不随包卸载删除。
 
 默认数据位置 `%USERPROFILE%\.dsh\ai-companion\state.json`。先备份再修改；不要并发手工编辑。异常退出可能留下 `engine.lock`，先确认没有实例使用该目录，再手工删除锁。损坏 JSON 会拒绝启动，不自动覆盖。

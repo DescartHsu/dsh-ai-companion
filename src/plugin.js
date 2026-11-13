@@ -1,5 +1,6 @@
 import { startRuntime } from './runtime.js';
 import { desktopConfigPath } from './config.js';
+import { registerSettings } from './settings.js';
 
 export const name = 'dsh-ai-companion';
 export const inject = ['tools'];
@@ -9,6 +10,7 @@ export async function apply(ctx, config = {}) {
   const runtime = await startRuntime(path);
   {
     try {
+      if (ctx.inject) registerSettings(ctx, runtime.engine);
       ctx.tools.register({
         name:'companion_chat', description:'与 AI 伴侣聊天。仅在用户要求时调用；返回角色原话。',
         parameters:{type:'object',properties:{text:{type:'string',minLength:1,maxLength:8000}},required:['text'],additionalProperties:false},

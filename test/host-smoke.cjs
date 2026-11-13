@@ -20,16 +20,31 @@ async function main() {
   try {
     // Minimal system-prompt dependency; no live desktop or model session.
     ctx.provide('systemPrompt',{tools:()=>()=>{}});
+    let statusRoute;
+    ctx.provide('webServer', {register(route) {
+      statusRoute = route;
+      return () => {statusRoute = null;};
+    }});
+    ctx.provide('connection', {requestRejection: () => undefined});
     await ctx.plugin(ToolsService).await();
     const plugin = Loader.prototype.unwrapExports(require('../src/plugin.js'));
     const fiber = ctx.plugin(plugin,{configPath});
     await fiber.await();
     assert.equal([...ctx.tools.definitions()].length,2);
     assert.ok(fs.existsSync(path.join(dir,'engine.lock')));
+    assert.equal(statusRoute.path, '/api/ai-companion/status');
+    let status;
+    statusRoute.handler({method: 'GET'}, {
+      writeHead(code) {assert.equal(code, 200);},
+      end(body) {status = JSON.parse(body);}
+    });
+    assert.equal(status.name, config.character.name);
+    assert.ok(status.state.bpm > 0);
     fiber.dispose();
     await fiber.await();
     assert.equal(fs.existsSync(path.join(dir,'engine.lock')),false);
-    return {ok:true, sdk:root, checks:['Cordis activation','real ToolsService registration','dispose releases lock']};
+    assert.equal(statusRoute, null);
+    return {ok:true, sdk:root, checks:['Loader default entry activation','real ToolsService registration','settings route and disposal','dispose releases lock']};
   } finally { ctx.fiber.dispose(); await ctx.fiber.await(); await fs.promises.rm(dir,{recursive:true,force:true,maxRetries:3}).catch(()=>{}); }
 }
 main().then(result=>{
